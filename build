@@ -27,8 +27,8 @@ docker build -t ls-getpath $SHDIR
 
 mkdir -p $SHDIR/bin
 
-build linux amd64 linux/go-allpath \
+build linux amd64 linux/GetFilePathInDir \
 	main.go
 
-build windows amd64 windows/go-allpath.exe \
+build windows amd64 windows/GetFilePathInDir.exe \
 	main.go
