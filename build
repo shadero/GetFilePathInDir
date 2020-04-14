@@ -1,0 +1,34 @@
+#!/bin/bash -xe
+
+SHDIR=$(cd $(dirname $0) && pwd)
+
+function build () {
+	docker run \
+		--rm \
+		-it \
+		--user=$(id -u):$(id -g) \
+		-v $SHDIR/src/:/src/:ro \
+		-v $SHDIR/bin/:/builded/ \
+		ls-getpath \
+		bash -c "\
+			cd /src &&
+			CGO_ENABLED=0 \
+			GOOS=$1 \
+			GOARCH=$2 \
+			XDG_CACHE_HOME=/tmp/.cache \
+			go build \
+				-ldflags \"-s -w\" \
+				-o /builded/$3 \
+				${@:4}
+		"
+}
+
+docker build -t ls-getpath $SHDIR
+
+mkdir -p $SHDIR/bin
+
+build linux amd64 linux/go-allpath \
+	main.go
+
+build windows amd64 windows/go-allpath.exe \
+	main.go
