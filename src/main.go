@@ -45,6 +45,35 @@ func loadConfig(dir, name string) (SearchDirConf, error) {
 	return conf, nil
 }
 
+func loadFilePath(dirPath string) ([]FileConf) {
+	files, err := ioutil.ReadDir(dirPath)
+	if err != nil {
+		panic(err)
+	}
+
+	var fileConfs []FileConf	
+	for _, file := range files {
+		p := filepath.Join(dirPath, file.Name())
+
+		if(file.IsDir()){
+			fileConfs = append(
+				fileConfs,
+				loadFilePath(p)...
+			)
+			continue
+		}
+
+		fileConfs = append(
+			fileConfs,
+			FileConf {
+				Path: p,
+				Date: file.ModTime().Unix(),
+			},
+		)
+	}
+	return fileConfs
+}
+
 func main(){
 	e := echo.New()
 
@@ -58,14 +87,14 @@ func main(){
 	}
 	
 	e.GET ("/", func(c echo.Context) error {
-		files, err := ioutil.ReadDir(conf.Path)
+		/*files, err := ioutil.ReadDir(conf.Path)
 		if err != nil {
 			panic(err)
-		}
-		var fileConfs []FileConf	
+		}*/
+		/*var fileConfs []FileConf	
 		for _, file := range files {
 			if(file.IsDir()){
-				//再帰的に探索とかしたいよねー
+				
 				continue
 			}
 			fileConfs = append(
@@ -75,8 +104,8 @@ func main(){
 					Date: file.ModTime().Unix(),
 				},
 			)
-		}
-		return c.JSON(http.StatusOK, fileConfs)
+		}*/
+		return c.JSON(http.StatusOK, loadFilePath(conf.Path))
 	})
 
 	e.Start(":" + conf.Port)
